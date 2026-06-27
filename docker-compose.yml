@@ -1,0 +1,64 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: taxcompliance-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-taxcompliance}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: taxcompliance-redis
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: taxcompliance-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  api:
+    profiles: ["full"]
+    build:
+      context: .
+      dockerfile: backend/src/TaxCompliance.Api/Dockerfile
+    container_name: taxcompliance-api
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-taxcompliance};Username=${POSTGRES_USER:-postgres};Password=${POSTGRES_PASSWORD:-postgres}
+      ConnectionStrings__Redis: redis:6379
+      RabbitMq__HostName: rabbitmq
+      Jwt__SigningKey: ${Jwt__SigningKey:-ChangeThisDevelopmentKeyToALongerSecret12345}
+      Seed__AdminEmail: ${Seed__AdminEmail:-admin@taxplatform.local}
+      Seed__AdminPassword: ${Seed__AdminPassword:-Admin123!}
+      Notifications__DefaultRecipientEmail: ${Notifications__DefaultRecipientEmail:-admin@taxplatform.local}
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    volumes:
+      - upload-storage:/app/storage/uploads
+
+  frontend:
+    profiles: ["full"]
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: taxcompliance-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - api
+
+volumes:
+  postgres-data:
+  upload-storage:

@@ -1,0 +1,108 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB is required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:?REDIS_PASSWORD is required}"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:?RABBITMQ_DEFAULT_USER is required}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:?RABBITMQ_DEFAULT_PASS is required}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/src/TaxCompliance.Api/Dockerfile
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:?POSTGRES_DB is required};Username=${POSTGRES_USER:?POSTGRES_USER is required};Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      ConnectionStrings__Redis: redis:6379,password=${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+      RabbitMq__HostName: rabbitmq
+      RabbitMq__UserName: ${RABBITMQ_DEFAULT_USER:?RABBITMQ_DEFAULT_USER is required}
+      RabbitMq__Password: ${RABBITMQ_DEFAULT_PASS:?RABBITMQ_DEFAULT_PASS is required}
+      Jwt__SigningKey: ${Jwt__SigningKey:?Jwt__SigningKey is required}
+      Seed__AdminEmail: ${Seed__AdminEmail:?Seed__AdminEmail is required}
+      Seed__AdminPassword: ${Seed__AdminPassword:?Seed__AdminPassword is required}
+      Notifications__DefaultRecipientEmail: ${Notifications__DefaultRecipientEmail:?Notifications__DefaultRecipientEmail is required}
+      Cors__AllowedOrigins__0: ${PUBLIC_APP_ORIGIN:?PUBLIC_APP_ORIGIN is required}
+      PasswordReset__ClientResetUrl: ${PasswordReset__ClientResetUrl:?PasswordReset__ClientResetUrl is required}
+      Email__Provider: Smtp
+      Email__FromAddress: ${Email__FromAddress:?Email__FromAddress is required}
+      Email__FromName: ${Email__FromName:-Tax Compliance Workflow Platform}
+      Email__SmtpHost: ${Email__SmtpHost:?Email__SmtpHost is required}
+      Email__SmtpPort: ${Email__SmtpPort:-587}
+      Email__EnableSsl: ${Email__EnableSsl:-true}
+      Email__Username: ${Email__Username:?Email__Username is required}
+      Email__Password: ${Email__Password:?Email__Password is required}
+      DataProtection__KeysPath: /app/data-protection-keys
+      SecurityHeaders__EnableHsts: "true"
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - upload-storage:/app/storage/uploads
+      - data-protection-keys:/app/data-protection-keys
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        NG_APP_API_BASE_URL: ${NG_APP_API_BASE_URL:-/api}
+    restart: unless-stopped
+    ports:
+      - "${PUBLIC_HTTP_PORT:-80}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  redis-data:
+  rabbitmq-data:
+  upload-storage:
+  data-protection-keys:

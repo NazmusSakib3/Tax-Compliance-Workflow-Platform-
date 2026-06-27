@@ -1,0 +1,118 @@
+<section class="hero page-card">
+  <div class="hero-copy">
+    <p class="eyebrow">Operations overview</p>
+    <h1>{{ pageTitle }}</h1>
+    <p class="section-subtitle">{{ pageSubtitle }}</p>
+  </div>
+  <button type="button" class="secondary-button export-btn" *ngIf="!isContributorView" (click)="exportReport()" [disabled]="isExporting || isLoading">
+    {{ isExporting ? 'Exporting...' : 'Export CSV report' }}
+  </button>
+</section>
+
+<p class="status-message error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+<app-loading-state *ngIf="isLoading" class="dashboard-loading" title="Loading dashboard summary" subtitle="Fetching overdue, due-soon, completed, and in-progress totals." [rows]="3"></app-loading-state>
+
+<section class="summary-grid" *ngIf="!isLoading && summaryCards.length">
+  <app-summary-card
+    *ngFor="let card of summaryCards"
+    [label]="card.label"
+    [value]="card.value"
+    [link]="card.link ?? ''"
+    [linkLabel]="card.linkLabel ?? 'View tasks'"
+    [queryParams]="card.queryParams ?? null"
+    [tone]="card.tone ?? 'default'">
+  </app-summary-card>
+</section>
+
+<section class="trend-panel page-card" *ngIf="!isLoading && summary">
+  <div class="trend-header">
+    <div>
+      <h2 class="section-title">30-day completion trend</h2>
+      <p class="section-subtitle">{{ trendLabel }}</p>
+    </div>
+    <span class="trend-delta" [class.positive]="trendDelta > 0" [class.negative]="trendDelta < 0" [class.neutral]="trendDelta === 0">
+      {{ trendDeltaLabel }}
+    </span>
+  </div>
+  <div class="trend-grid">
+    <div class="trend-stat">
+      <p class="eyebrow">Last 30 days</p>
+      <strong class="metric-highlight">{{ summary.completedLast30Days }}</strong>
+      <span class="trend-caption">tasks completed</span>
+    </div>
+    <div class="trend-stat">
+      <p class="eyebrow">Previous 30 days</p>
+      <strong class="metric-highlight muted">{{ summary.completedPrevious30Days }}</strong>
+      <span class="trend-caption">tasks completed</span>
+    </div>
+  </div>
+
+  <div class="trend-chart" role="img"
+    [attr.aria-label]="'Last 30 days completed ' + summary.completedLast30Days + ', previous 30 days completed ' + summary.completedPrevious30Days + '.'">
+    <div class="trend-bar-row">
+      <span class="trend-bar-label">Last 30 days</span>
+      <span class="trend-bar-track">
+        <span class="trend-bar-fill current" [style.width.%]="trendBarWidth(summary.completedLast30Days)"></span>
+      </span>
+      <span class="trend-bar-value">{{ summary.completedLast30Days }}</span>
+    </div>
+    <div class="trend-bar-row">
+      <span class="trend-bar-label">Previous 30 days</span>
+      <span class="trend-bar-track">
+        <span class="trend-bar-fill previous" [style.width.%]="trendBarWidth(summary.completedPrevious30Days)"></span>
+      </span>
+      <span class="trend-bar-value">{{ summary.completedPrevious30Days }}</span>
+    </div>
+  </div>
+</section>
+
+<section class="breakdown-grid" *ngIf="!isLoading && summary && !isContributorView">
+  <article class="page-card breakdown-card">
+    <h2 class="section-title">Jurisdiction drill-down</h2>
+    <p class="section-subtitle">Open and overdue work grouped by filing jurisdiction.</p>
+    <div class="breakdown-table" *ngIf="summary.jurisdictionBreakdown.length; else noJurisdictionBreakdown">
+      <div class="breakdown-row breakdown-header">
+        <span>Jurisdiction</span>
+        <span>Open</span>
+        <span>Overdue</span>
+      </div>
+      <a class="breakdown-row breakdown-link" *ngFor="let item of summary.jurisdictionBreakdown"
+        [routerLink]="['/task-occurrences']" [queryParams]="breakdownQueryParams(item)"
+        [attr.aria-label]="'View tasks for ' + item.name">
+        <span class="breakdown-name">{{ item.name }}</span>
+        <span>{{ item.openCount }}</span>
+        <span [class.overdue-count]="item.overdueCount > 0">{{ item.overdueCount }}</span>
+      </a>
+    </div>
+    <ng-template #noJurisdictionBreakdown>
+      <p class="section-subtitle empty-hint">No jurisdiction breakdown is available yet.</p>
+    </ng-template>
+  </article>
+
+  <article class="page-card breakdown-card">
+    <h2 class="section-title">Legal entity drill-down</h2>
+    <p class="section-subtitle">Open and overdue work grouped by legal entity.</p>
+    <div class="breakdown-table" *ngIf="summary.legalEntityBreakdown.length; else noEntityBreakdown">
+      <div class="breakdown-row breakdown-header">
+        <span>Legal entity</span>
+        <span>Open</span>
+        <span>Overdue</span>
+      </div>
+      <a class="breakdown-row breakdown-link" *ngFor="let item of summary.legalEntityBreakdown"
+        [routerLink]="['/task-occurrences']" [queryParams]="breakdownQueryParams(item)"
+        [attr.aria-label]="'View tasks for ' + item.name">
+        <span class="breakdown-name">{{ item.name }}</span>
+        <span>{{ item.openCount }}</span>
+        <span [class.overdue-count]="item.overdueCount > 0">{{ item.overdueCount }}</span>
+      </a>
+    </div>
+    <ng-template #noEntityBreakdown>
+      <p class="section-subtitle empty-hint">No legal entity breakdown is available yet.</p>
+    </ng-template>
+  </article>
+</section>
+
+<app-empty-state *ngIf="!isLoading && !errorMessage && !summaryCards.length"
+  title="No dashboard data yet"
+  subtitle="Once task occurrences exist, this summary will show overdue, due soon, completed, and in-progress counts."></app-empty-state>

@@ -1,0 +1,65 @@
+<section class="login-shell">
+  <aside class="login-brand page-card">
+    <div class="brand-mark" aria-hidden="true">TC</div>
+    <p class="eyebrow">Tax Compliance Workflow Platform</p>
+    <h2>Compliance work, organized and on schedule</h2>
+    <p class="section-subtitle">Track recurring filings across entities and jurisdictions. Assign work, capture evidence, and stay audit-ready.</p>
+    <ul class="feature-list">
+      <li>Role-based dashboards for managers and contributors</li>
+      <li>Automated task generation from compliance rules</li>
+      <li>Full audit trail for every workflow change</li>
+    </ul>
+  </aside>
+
+  <div class="login-card page-card">
+    <div class="login-copy">
+      <p class="eyebrow">Secure access</p>
+      <h1>Sign in</h1>
+      <p class="section-subtitle">Use your Identity account credentials to access your organization workspace.</p>
+    </div>
+
+    <form class="login-form" [formGroup]="loginForm" (ngSubmit)="submit()">
+      <label>
+        <span>Email</span>
+        <input type="email" formControlName="email" placeholder="you@company.com" autocomplete="username"
+          [attr.aria-invalid]="loginFieldError('email', 'Email') ? 'true' : null"
+          [attr.aria-describedby]="loginFieldError('email', 'Email') ? 'login-email-error' : null">
+        <p class="inline-field-error" id="login-email-error" *ngIf="loginFieldError('email', 'Email')">{{ loginFieldError('email', 'Email') }}</p>
+      </label>
+
+      <label>
+        <span>Password</span>
+        <input type="password" formControlName="password" placeholder="Enter your password" autocomplete="current-password"
+          [attr.aria-invalid]="loginFieldError('password', 'Password') ? 'true' : null"
+          [attr.aria-describedby]="loginFieldError('password', 'Password') ? 'login-password-error' : null">
+        <p class="inline-field-error" id="login-password-error" *ngIf="loginFieldError('password', 'Password')">{{ loginFieldError('password', 'Password') }}</p>
+      </label>
+
+      <section class="mfa-challenge" *ngIf="mfaRequired">
+        <div>
+          <p class="eyebrow">Multi-factor authentication</p>
+          <h2>Enter your authenticator code</h2>
+          <p class="section-subtitle">Your password was accepted. Finish signing in with the 6-digit code from your authenticator app.</p>
+        </div>
+
+        <label>
+          <span>Authenticator code</span>
+          <input inputmode="numeric" autocomplete="one-time-code" formControlName="mfaCode" placeholder="123456"
+            [attr.aria-invalid]="loginFieldError('mfaCode', 'Authenticator code') ? 'true' : null"
+            [attr.aria-describedby]="loginFieldError('mfaCode', 'Authenticator code') ? 'login-mfa-error' : null">
+          <p class="inline-field-error" id="login-mfa-error" *ngIf="loginFieldError('mfaCode', 'Authenticator code')">{{ loginFieldError('mfaCode', 'Authenticator code') }}</p>
+        </label>
+
+        <button type="button" class="secondary-button" (click)="clearMfaChallenge()">Use different credentials</button>
+      </section>
+
+      <p class="status-message error-message" *ngIf="errorMessage">{{ errorMessage }}</p>
+
+      <button type="submit" class="primary-button login-submit" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Signing in...' : 'Sign in' }}
+      </button>
+
+      <a class="auth-link" routerLink="/forgot-password">Forgot password?</a>
+    </form>
+  </div>
+</section>

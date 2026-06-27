@@ -1,0 +1,26 @@
+bin/
+obj/
+.vs/
+.vscode/
+node_modules/
+dist/
+coverage/
+.angular/
+.sass-cache/
+TestResults/
+artifacts/
+storage/uploads/
+.env
+.env.production
+.env.pilot
+pilot-release-report.txt
+*.user
+*.suo
+*.db
+*.sqlite
+*.log
+
+# Cursor IDE files
+.cursor/        
+.cursorrules
+.cursorignore

@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>TaxCompliance.Domain</AssemblyName>
+    <RootNamespace>TaxCompliance.Domain</RootNamespace>
+  </PropertyGroup>
+</Project>
+

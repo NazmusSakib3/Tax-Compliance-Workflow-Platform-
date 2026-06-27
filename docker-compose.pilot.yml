@@ -1,0 +1,24 @@
+# Local pilot/staging overlay for production compose.
+# Adds MailHog for SMTP verification without a real mail provider.
+#
+# Usage:
+#   docker compose --env-file .env.pilot -f docker-compose.production.yml -f docker-compose.pilot.yml up -d --build
+
+services:
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    restart: unless-stopped
+    ports:
+      - "${MAILHOG_SMTP_PORT:-1025}:1025"
+      - "${MAILHOG_UI_PORT:-8025}:8025"
+
+  api:
+    environment:
+      Email__SmtpHost: mailhog
+      Email__SmtpPort: 1025
+      Email__EnableSsl: "false"
+      Email__Username: pilot
+      Email__Password: pilot
+    depends_on:
+      mailhog:
+        condition: service_started

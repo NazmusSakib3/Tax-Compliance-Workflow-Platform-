@@ -1,0 +1,101 @@
+<app-route-progress></app-route-progress>
+
+<div
+  class="shell-frame"
+  [class.public-frame]="isPublicView"
+  [class.authenticated-shell]="isAuthenticated && !isPublicView"
+  [class.menu-open]="menuOpen()">
+
+  <div class="sidebar-backdrop" *ngIf="isAuthenticated && !isPublicView" (click)="closeMenu()"></div>
+
+  <aside id="workspace-sidebar" class="sidebar" *ngIf="isAuthenticated && !isPublicView">
+    <div class="sidebar-brand">
+      <div class="brand-mark" aria-hidden="true">TC</div>
+      <div class="brand-copy">
+        <p class="brand-name">Tax Compliance</p>
+        <p class="brand-sub">Workflow Platform</p>
+      </div>
+    </div>
+
+    <nav class="nav-list">
+      <a
+        *ngFor="let item of visibleNavigationItems"
+        [routerLink]="item.path"
+        routerLinkActive="active-link"
+        (click)="closeMenu()"
+        class="nav-link">
+        <span class="nav-icon" [attr.data-icon]="item.icon"></span>
+        <span class="nav-content">
+          <span class="nav-label">{{ navigationLabel(item) }}</span>
+          <span class="nav-description">{{ navigationDescription(item) }}</span>
+        </span>
+      </a>
+    </nav>
+
+    <p class="sidebar-footer" *ngIf="canSwitchOrganizations">
+      Platform admins can scope the workspace to one organization or browse all tenants.
+    </p>
+  </aside>
+
+  <div class="content-column">
+    <header
+      class="topbar"
+      [class.page-card]="isPublicView"
+      [class.compact-topbar]="isAuthenticated && !isPublicView">
+      <div class="topbar-brand">
+        <button
+          *ngIf="isAuthenticated && !isPublicView"
+          type="button"
+          class="secondary-button menu-toggle"
+          (click)="toggleMenu()"
+          [attr.aria-expanded]="menuOpen()"
+          aria-controls="workspace-sidebar"
+          aria-label="Toggle navigation menu">
+          <span class="menu-toggle-icon" aria-hidden="true"></span>
+        </button>
+        <div class="brand-mark" aria-hidden="true" *ngIf="isPublicView">TC</div>
+        <div class="brand-copy">
+          <p class="eyebrow">Tax Compliance Workflow Platform</p>
+          <h1 *ngIf="!isAuthenticated || isPublicView">Operational clarity for recurring compliance work</h1>
+          <p class="section-subtitle" *ngIf="!isAuthenticated || isPublicView">
+            Securely manage entities, jurisdictions, rules, and task execution.
+          </p>
+          <p class="user-greeting" *ngIf="isAuthenticated && !isPublicView">
+            Welcome back, <strong>{{ displayName }}</strong>
+          </p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <label class="organization-switcher" *ngIf="isAuthenticated && canSwitchOrganizations">
+          <span>Organization context</span>
+          <select [value]="selectedOrganizationId ?? ''" (change)="onOrganizationChange($event)">
+            <option value="">All organizations</option>
+            <option *ngFor="let organization of organizations" [value]="organization.id">{{ organization.name }}</option>
+          </select>
+          <small>{{ selectedOrganizationName }}</small>
+        </label>
+        <div class="user-avatar" *ngIf="isAuthenticated && !isPublicView" [attr.title]="displayName">
+          {{ userInitials }}
+        </div>
+        <button type="button" class="secondary-button theme-toggle" (click)="toggleTheme()" [attr.aria-label]="activeThemeLabel">
+          <span class="theme-icon" [class.dark]="themeService.currentTheme() === 'dark'"></span>
+          <span class="theme-label">{{ activeThemeLabel }}</span>
+        </button>
+        <button *ngIf="isAuthenticated" type="button" class="danger-button" (click)="logout()">Sign out</button>
+      </div>
+    </header>
+
+    <main class="content-area">
+      <router-outlet></router-outlet>
+
+      <footer class="shell-footer" *ngIf="!isPublicView">
+        <span>Tax Compliance Workflow Platform</span>
+        <span>{{ currentYear }}</span>
+      </footer>
+    </main>
+  </div>
+</div>
+
+<app-toast-container></app-toast-container>
+<app-confirm-dialog></app-confirm-dialog>
