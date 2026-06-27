@@ -1,4 +1,4 @@
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 ARG NG_APP_API_BASE_URL=/api
 WORKDIR /app
 COPY frontend/package*.json ./
