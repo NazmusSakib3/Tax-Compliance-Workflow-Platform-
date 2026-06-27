@@ -8,9 +8,11 @@ ENV NG_APP_API_BASE_URL=$NG_APP_API_BASE_URL
 RUN node scripts/write-production-environment.js
 RUN npm run build
 
-FROM nginx:1.27-alpine
+FROM nginxinc/nginx-unprivileged:1.31-alpine
+USER root
+RUN apk upgrade --no-cache
 COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist/tax-compliance-frontend/browser /usr/share/nginx/html
-EXPOSE 80
+USER nginx
+EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
-

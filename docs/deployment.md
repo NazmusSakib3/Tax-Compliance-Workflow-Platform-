@@ -139,7 +139,7 @@ The production compose file:
 Container images:
 
 - `backend/src/TaxCompliance.Api/Dockerfile` publishes the .NET API on port `8080`.
-- `frontend/Dockerfile` builds the Angular app and serves it with nginx on port `80`.
+- `frontend/Dockerfile` builds the Angular app and serves it with non-root nginx on port `8080` (mapped to the public `PUBLIC_HTTP_PORT`, default `80`, on the host).
 
 ## Health Checks
 
