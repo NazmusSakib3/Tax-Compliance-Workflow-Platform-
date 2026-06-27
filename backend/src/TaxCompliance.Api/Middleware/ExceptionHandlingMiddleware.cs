@@ -30,9 +30,21 @@ public class ExceptionHandlingMiddleware
         }
         catch (Exception exception)
         {
-            logger.LogError(exception, "Unhandled exception while processing {Method} {Path}", httpContext.Request.Method, httpContext.Request.Path);
+            var method = SanitizeForLog(httpContext.Request.Method);
+            var path = SanitizeForLog(httpContext.Request.Path.ToString());
+            logger.LogError(exception, "Unhandled exception while processing {Method} {Path}", method, path);
             await WriteResponseAsync(httpContext, StatusCodes.Status500InternalServerError, "An unexpected error occurred.");
         }
+    }
+
+    private static string SanitizeForLog(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return value;
+        }
+
+        return value.Replace("\r", string.Empty).Replace("\n", string.Empty);
     }
 
     private static async Task WriteResponseAsync(HttpContext context, int statusCode, string message, IDictionary<string, string[]>? errors = null)

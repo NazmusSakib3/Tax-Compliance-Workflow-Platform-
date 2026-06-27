@@ -15,4 +15,6 @@ COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist/tax-compliance-frontend/browser /usr/share/nginx/html
 USER nginx
 EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget --quiet --tries=1 --spider http://localhost:8080/ || exit 1
 CMD ["nginx", "-g", "daemon off;"]
