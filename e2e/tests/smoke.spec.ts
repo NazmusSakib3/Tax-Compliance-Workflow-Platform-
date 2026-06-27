@@ -30,8 +30,13 @@ test.describe('Tax Compliance smoke flow', () => {
     expect(orgResponse.ok()).toBeTruthy();
     const organization = await orgResponse.json();
 
+    // The seeded admin is a platform admin with no default organization, so
+    // organization-scoped writes require the same X-Organization-Id header the
+    // web app sends after an organization is selected.
+    const orgHeaders = { ...authHeaders, 'X-Organization-Id': organization.id as string };
+
     const jurisdictionResponse = await request.post(`${apiBaseUrl}/jurisdictions`, {
-      headers: authHeaders,
+      headers: orgHeaders,
       data: {
         name: 'Playwright Jurisdiction',
         countryCode: 'US',
@@ -44,7 +49,7 @@ test.describe('Tax Compliance smoke flow', () => {
     const jurisdiction = await jurisdictionResponse.json();
 
     const templateResponse = await request.post(`${apiBaseUrl}/compliance-templates`, {
-      headers: authHeaders,
+      headers: orgHeaders,
       data: {
         name: `Playwright Template ${Date.now()}`,
         filingType: 'VAT',
@@ -57,7 +62,7 @@ test.describe('Tax Compliance smoke flow', () => {
     const template = await templateResponse.json();
 
     const legalEntityResponse = await request.post(`${apiBaseUrl}/legal-entities`, {
-      headers: authHeaders,
+      headers: orgHeaders,
       data: {
         organizationId: organization.id,
         name: 'Playwright Legal Entity',
@@ -70,7 +75,7 @@ test.describe('Tax Compliance smoke flow', () => {
     const legalEntity = await legalEntityResponse.json();
 
     const ruleResponse = await request.post(`${apiBaseUrl}/compliance-task-rules`, {
-      headers: authHeaders,
+      headers: orgHeaders,
       data: {
         legalEntityId: legalEntity.id,
         jurisdictionId: jurisdiction.id,
@@ -85,12 +90,12 @@ test.describe('Tax Compliance smoke flow', () => {
     expect(ruleResponse.ok()).toBeTruthy();
 
     const generateResponse = await request.post(`${apiBaseUrl}/compliance-task-occurrences/generate`, {
-      headers: authHeaders
+      headers: orgHeaders
     });
     expect(generateResponse.ok()).toBeTruthy();
 
     const occurrencesResponse = await request.get(`${apiBaseUrl}/compliance-task-occurrences?page=1&pageSize=5`, {
-      headers: authHeaders
+      headers: orgHeaders
     });
     expect(occurrencesResponse.ok()).toBeTruthy();
     const occurrencesPayload = await occurrencesResponse.json();
@@ -98,7 +103,7 @@ test.describe('Tax Compliance smoke flow', () => {
 
     const occurrenceId = occurrencesPayload.items[0].id;
     const completeResponse = await request.post(`${apiBaseUrl}/compliance-task-occurrences/${occurrenceId}/status`, {
-      headers: authHeaders,
+      headers: orgHeaders,
       data: { status: 4 }
     });
     expect(completeResponse.ok()).toBeTruthy();
