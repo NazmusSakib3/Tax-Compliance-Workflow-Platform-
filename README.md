@@ -2,6 +2,67 @@
 
 A beginner-friendly modular monolith for managing recurring tax and compliance work across organizations, legal entities, jurisdictions, templates, and generated task occurrences.
 
+## Screenshots
+
+The images below were captured from a local development run of the Angular frontend and ASP.NET Core API. To regenerate them after UI changes:
+
+```bash
+cd e2e
+npm install
+npx playwright install chromium
+npx playwright test capture-readme-screenshots
+```
+
+### Authentication
+
+| Sign in | Password recovery |
+|---------|-------------------|
+| ![Sign in page](docs/screenshots/01-login.png) | ![Forgot password page](docs/screenshots/02-forgot-password.png) |
+
+### Dashboard
+
+Operations overview with overdue/due-soon metrics, completion trends, and jurisdiction/entity drill-downs.
+
+![Compliance dashboard](docs/screenshots/03-dashboard.png)
+
+### Master data management
+
+| Organizations | Legal entities |
+|---------------|----------------|
+| ![Organizations](docs/screenshots/04-organizations.png) | ![Legal entities](docs/screenshots/05-legal-entities.png) |
+
+| Jurisdictions | Compliance templates |
+|---------------|----------------------|
+| ![Jurisdictions](docs/screenshots/06-jurisdictions.png) | ![Compliance templates](docs/screenshots/07-compliance-templates.png) |
+
+| Task rules |
+|------------|
+| ![Task rules](docs/screenshots/08-task-rules.png) |
+
+### Task workflow
+
+| Task occurrences list | Task occurrence detail |
+|-----------------------|------------------------|
+| ![Task occurrences](docs/screenshots/09-task-occurrences.png) | ![Task occurrence detail](docs/screenshots/13-task-occurrence-detail.png) |
+
+Assignment, status updates, comments, document uploads, and audit history are available on the detail screen.
+
+### Administration and security
+
+| Audit log | User management |
+|-----------|-----------------|
+| ![Audit log](docs/screenshots/10-audit-log.png) | ![Users](docs/screenshots/11-users.png) |
+
+| Account security (MFA) |
+|------------------------|
+| ![Account security](docs/screenshots/12-account-security.png) |
+
+### API (Swagger)
+
+Interactive OpenAPI documentation served by the backend at `/swagger`.
+
+![Swagger UI](docs/screenshots/14-api-swagger.png)
+
 ## Note on Hosting / Live Deployment
 
 This project is **not deployed to a live public host**. The hosting step was intentionally left out because running it on a cloud provider incurs ongoing costs, which I chose not to take on for this project. This is a deliberate choice, not a technical limitation — the application is production-ready and I am familiar with how to deploy it (containerized API + frontend, managed PostgreSQL/Redis/RabbitMQ, TLS termination at a reverse proxy, environment-based secrets, and CI/CD).
