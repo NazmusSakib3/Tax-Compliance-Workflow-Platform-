@@ -58,7 +58,7 @@ export class LoginPageComponent {
     }).subscribe({
       next: () => {
         this.isSubmitting = false;
-        void this.router.navigate([defaultAuthenticatedRoute(this.authService)]);
+        this.router.navigate([defaultAuthenticatedRoute(this.authService)]).catch(() => undefined);
       },
       error: (error: HttpErrorResponse) => {
         this.isSubmitting = false;

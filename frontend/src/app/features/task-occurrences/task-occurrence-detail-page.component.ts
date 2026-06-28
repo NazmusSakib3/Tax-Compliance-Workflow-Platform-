@@ -199,9 +199,9 @@ export class TaskOccurrenceDetailPageComponent implements OnInit {
     commentText: ['', [Validators.required, Validators.maxLength(2000)]]
   });
 
-  @ViewChild('statusFormElement') private statusFormElement?: ElementRef<HTMLElement>;
-  @ViewChild('commentFormElement') private commentFormElement?: ElementRef<HTMLElement>;
-  @ViewChild('uploadInput') private uploadInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('statusFormElement') private readonly statusFormElement?: ElementRef<HTMLElement>;
+  @ViewChild('commentFormElement') private readonly commentFormElement?: ElementRef<HTMLElement>;
+  @ViewChild('uploadInput') private readonly uploadInput?: ElementRef<HTMLInputElement>;
 
   protected get canManageAssignment(): boolean {
     return this.authService.hasRole('Admin') || this.authService.hasRole('ComplianceManager');
@@ -349,7 +349,7 @@ export class TaskOccurrenceDetailPageComponent implements OnInit {
     this.apiService.downloadDocument(taskDocument.id).subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);
-        const anchor = window.document.createElement('a');
+        const anchor = globalThis.document.createElement('a');
         anchor.href = url;
         anchor.download = taskDocument.fileName;
         anchor.click();

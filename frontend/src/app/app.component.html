@@ -6,7 +6,12 @@
   [class.authenticated-shell]="isAuthenticated && !isPublicView"
   [class.menu-open]="menuOpen()">
 
-  <div class="sidebar-backdrop" *ngIf="isAuthenticated && !isPublicView" (click)="closeMenu()"></div>
+  <button
+    type="button"
+    class="sidebar-backdrop"
+    *ngIf="isAuthenticated && !isPublicView"
+    (click)="closeMenu()"
+    aria-label="Close navigation menu"></button>
 
   <aside id="workspace-sidebar" class="sidebar" *ngIf="isAuthenticated && !isPublicView">
     <div class="sidebar-brand">

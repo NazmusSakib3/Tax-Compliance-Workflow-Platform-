@@ -60,7 +60,7 @@ import { ConfirmDialogService } from '../../core/services/confirm-dialog.service
 export class ConfirmDialogComponent {
   protected readonly confirmDialogService = inject(ConfirmDialogService);
 
-  @ViewChild('dialogEl') private dialogEl?: ElementRef<HTMLElement>;
+  @ViewChild('dialogEl') private readonly dialogEl?: ElementRef<HTMLElement>;
   private previouslyFocused: HTMLElement | null = null;
 
   constructor() {
@@ -103,12 +103,12 @@ export class ConfirmDialogComponent {
     }
 
     const first = focusable[0];
-    const last = focusable[focusable.length - 1];
+    const last = focusable.at(-1);
     const active = document.activeElement;
 
     if (event.shiftKey && (active === first || active === this.dialogEl?.nativeElement)) {
       event.preventDefault();
-      last.focus();
+      last?.focus();
     } else if (!event.shiftKey && active === last) {
       event.preventDefault();
       first.focus();

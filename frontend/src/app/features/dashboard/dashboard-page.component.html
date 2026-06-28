@@ -48,7 +48,7 @@
     </div>
   </div>
 
-  <div class="trend-chart" role="img"
+  <figure class="trend-chart"
     [attr.aria-label]="'Last 30 days completed ' + summary.completedLast30Days + ', previous 30 days completed ' + summary.completedPrevious30Days + '.'">
     <div class="trend-bar-row">
       <span class="trend-bar-label">Last 30 days</span>
@@ -64,7 +64,7 @@
       </span>
       <span class="trend-bar-value">{{ summary.completedPrevious30Days }}</span>
     </div>
-  </div>
+  </figure>
 </section>
 
 <section class="breakdown-grid" *ngIf="!isLoading && summary && !isContributorView">

@@ -286,7 +286,15 @@ export class TaskRulesPageComponent implements OnInit {
   }
 
   protected recurrenceLabel(recurrenceType: number): string {
-    return recurrenceType === 1 ? 'Monthly' : recurrenceType === 2 ? 'Quarterly' : 'Yearly';
+    if (recurrenceType === 1) {
+      return 'Monthly';
+    }
+
+    if (recurrenceType === 2) {
+      return 'Quarterly';
+    }
+
+    return 'Yearly';
   }
 
   protected controlError(controlName: string, label: string): string {

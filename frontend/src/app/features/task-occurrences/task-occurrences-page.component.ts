@@ -148,11 +148,11 @@ export class TaskOccurrencesPageComponent implements OnInit {
 
   protected onStatusChange(event: Event): void {
     this.statusFilter = (event.target as HTMLSelectElement).value;
-    void this.router.navigate([], {
+    this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { status: this.statusFilter || null },
       queryParamsHandling: 'merge'
-    });
+    }).catch(() => undefined);
     this.loadPage(1);
   }
 

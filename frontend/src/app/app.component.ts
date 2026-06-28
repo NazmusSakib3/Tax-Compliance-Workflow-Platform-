@@ -135,7 +135,7 @@ export class AppComponent implements OnInit {
 
     const parts = name.split(/\s+/).filter(Boolean);
     if (parts.length >= 2) {
-      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      return (parts[0][0] + (parts.at(-1)?.[0] ?? '')).toUpperCase();
     }
 
     return name.slice(0, 2).toUpperCase();
@@ -231,13 +231,13 @@ export class AppComponent implements OnInit {
   protected onOrganizationChange(event: Event): void {
     const select = event.target as HTMLSelectElement;
     this.organizationContextService.setSelectedOrganizationId(select.value || null);
-    void this.router.navigateByUrl(this.router.url);
+    this.router.navigateByUrl(this.router.url).catch(() => undefined);
   }
 
   protected logout(): void {
     this.organizationContextService.reset();
     this.authService.logout();
-    void this.router.navigate(['/login']);
+    this.router.navigate(['/login']).catch(() => undefined);
   }
 
   protected toggleTheme(): void {

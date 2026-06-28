@@ -1,9 +1,9 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const apiBaseUrl = process.env.NG_APP_API_BASE_URL || '/api';
 const targetPath = path.join(__dirname, '..', 'src', 'environments', 'environment.production.ts');
-const escapedApiBaseUrl = apiBaseUrl.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+const escapedApiBaseUrl = apiBaseUrl.replaceAll('\\', String.raw`\\`).replaceAll("'", String.raw`\'`);
 const contents = `export const environment = {\n  apiBaseUrl: '${escapedApiBaseUrl}'\n};\n`;
 
 fs.writeFileSync(targetPath, contents, 'utf8');

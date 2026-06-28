@@ -14,7 +14,7 @@ describe('NotificationService', () => {
     service.info('heads up');
 
     const items = service.notifications();
-    expect(items.length).toBe(3);
+    expect(items.map((item) => item.tone)).toEqual(['success', 'error', 'info']);
     expect(items[0]).toEqual(jasmine.objectContaining({ tone: 'success', message: 'saved' }));
     expect(items[1]).toEqual(jasmine.objectContaining({ tone: 'error', message: 'boom' }));
     expect(items[2]).toEqual(jasmine.objectContaining({ tone: 'info', message: 'heads up' }));
@@ -26,15 +26,15 @@ describe('NotificationService', () => {
 
     service.dismiss(id);
 
-    expect(service.notifications().length).toBe(0);
+    expect(service.notifications()).toEqual([]);
   });
 
   it('auto-dismisses notifications after their duration elapses', fakeAsync(() => {
     service.info('temporary');
-    expect(service.notifications().length).toBe(1);
+    expect(service.notifications().map((item) => item.message)).toEqual(['temporary']);
 
     tick(4000);
 
-    expect(service.notifications().length).toBe(0);
+    expect(service.notifications()).toEqual([]);
   }));
 });

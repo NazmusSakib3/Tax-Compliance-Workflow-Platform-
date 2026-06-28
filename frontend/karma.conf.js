@@ -1,4 +1,4 @@
-module.exports = function (config) {
+module.exports = function karmaConfig(config) {
   config.set({
     basePath: '',
     frameworks: ['jasmine', '@angular-devkit/build-angular'],
@@ -14,7 +14,7 @@ module.exports = function (config) {
       clearContext: false
     },
     coverageReporter: {
-      dir: require('path').join(__dirname, './coverage/tax-compliance-frontend'),
+      dir: require('node:path').join(__dirname, './coverage/tax-compliance-frontend'),
       subdir: '.',
       reporters: [{ type: 'html' }, { type: 'lcovonly' }, { type: 'text-summary' }],
       check: {

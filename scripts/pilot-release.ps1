@@ -22,9 +22,23 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 
-function Write-Step([string]$Message) {
+function Show-Step([string]$Message) {
     Write-Host ""
     Write-Host "==> $Message" -ForegroundColor Cyan
+}
+
+function Show-Message {
+    param(
+        [Parameter(Mandatory = $true, Position = 0)]
+        [string]$Message,
+        [string]$ForegroundColor
+    )
+
+    if ($PSBoundParameters.ContainsKey('ForegroundColor')) {
+        Write-Host $Message -ForegroundColor $ForegroundColor
+    } else {
+        Write-Host $Message
+    }
 }
 
 function New-RandomSecret([int]$Length = 32) {
@@ -42,7 +56,7 @@ function Ensure-Docker {
 function Ensure-PilotEnvFile {
     $envPath = Join-Path $root $EnvFile
     if (-not (Test-Path $envPath)) {
-        Write-Step "Creating $EnvFile from .env.pilot.example with generated secrets"
+        Show-Step "Creating $EnvFile from .env.pilot.example with generated secrets"
         $template = Get-Content (Join-Path $root ".env.pilot.example") -Raw
         $template = $template.Replace("replace-with-strong-database-password", (New-RandomSecret 24))
         $template = $template.Replace("replace-with-strong-redis-password", (New-RandomSecret 24))
@@ -50,7 +64,7 @@ function Ensure-PilotEnvFile {
         $template = $template.Replace("replace-with-at-least-32-random-characters", (New-RandomSecret 48))
         $template = $template.Replace("replace-with-temporary-strong-admin-password", "PilotAdmin!$(New-RandomSecret 8)")
         Set-Content -Path $envPath -Value $template -NoNewline
-        Write-Host "Created $EnvFile (not committed). Review before production use."
+        Show-Message "Created $EnvFile (not committed). Review before production use."
     }
 
     return $envPath
@@ -63,7 +77,7 @@ function Read-EnvValue([string]$EnvPath, [string]$Key) {
 }
 
 function Invoke-PilotCiChecks {
-    Write-Step "Running local CI checks (backend + frontend)"
+    Show-Step "Running local CI checks (backend + frontend)"
 
     dotnet restore backend/TaxCompliance.sln
     dotnet build backend/TaxCompliance.sln --configuration Release -warnaserror
@@ -85,11 +99,11 @@ function Invoke-PilotCiChecks {
         Pop-Location
     }
 
-    Write-Host "Local CI checks passed." -ForegroundColor Green
+    Show-Message "Local CI checks passed." -ForegroundColor Green
 }
 
 function Invoke-PilotDeploy([string]$EnvPath, [switch]$NoCache) {
-    Write-Step "Building and starting pilot stack"
+    Show-Step "Building and starting pilot stack"
     $composeArgs = @(
         "compose", "--env-file", $EnvPath,
         "-f", "docker-compose.production.yml",
@@ -97,7 +111,7 @@ function Invoke-PilotDeploy([string]$EnvPath, [switch]$NoCache) {
         "up", "-d", "--build"
     )
     if ($NoCache) {
-        Write-Host "Rebuilding with --no-cache --pull (fresh base images, no build cache)" -ForegroundColor Yellow
+        Show-Message "Rebuilding with --no-cache --pull (fresh base images, no build cache)" -ForegroundColor Yellow
         $composeArgs += "--no-cache", "--pull"
     }
     & docker @composeArgs
@@ -110,7 +124,7 @@ function Invoke-PilotDeploy([string]$EnvPath, [switch]$NoCache) {
         try {
             $response = Invoke-WebRequest -Uri "$PublicOrigin/health" -UseBasicParsing -TimeoutSec 5
             if ($response.StatusCode -eq 200) {
-                Write-Host "Health check OK: $PublicOrigin/health" -ForegroundColor Green
+                Show-Message "Health check OK: $PublicOrigin/health" -ForegroundColor Green
                 return
             }
         }
@@ -229,7 +243,7 @@ function Invoke-PilotMfaVerification {
         throw "MFA disable failed: $($disable.message)"
     }
 
-    Write-Host "MFA setup, challenge login, and disable OK." -ForegroundColor Green
+    Show-Message "MFA setup, challenge login, and disable OK." -ForegroundColor Green
 }
 
 function Invoke-PilotDashboardExportVerification {
@@ -259,7 +273,7 @@ function Invoke-PilotDashboardExportVerification {
         throw "Dashboard CSV export did not contain expected header row."
     }
 
-    Write-Host "Dashboard CSV export OK." -ForegroundColor Green
+    Show-Message "Dashboard CSV export OK." -ForegroundColor Green
 }
 
 function Invoke-PilotRoleFlowVerification {
@@ -360,7 +374,7 @@ function Invoke-PilotRoleFlowVerification {
         throw "Contributor saw $($visibleIds.Count) occurrences; expected only the assigned task."
     }
 
-    Write-Host "Contributor role filter and assignment flow OK." -ForegroundColor Green
+    Show-Message "Contributor role filter and assignment flow OK." -ForegroundColor Green
 }
 
 function Decode-QuotedPrintableBody([string]$Body) {
@@ -415,7 +429,7 @@ function Get-MailHogResetLink([string]$RecipientEmail, [int]$MailHogUiPort = 802
 }
 
 function Invoke-PilotVerification([string]$EnvPath) {
-    Write-Step "Verifying login, password reset email, and admin credential rotation"
+    Show-Step "Verifying login, password reset email, and admin credential rotation"
 
     $adminEmail = Read-EnvValue $EnvPath "Seed__AdminEmail"
     $seedPassword = Read-EnvValue $EnvPath "Seed__AdminPassword"
@@ -428,7 +442,7 @@ function Invoke-PilotVerification([string]$EnvPath) {
     if (-not $login.success) {
         throw "Initial admin login failed."
     }
-    Write-Host "Admin login OK." -ForegroundColor Green
+    Show-Message "Admin login OK." -ForegroundColor Green
 
     Invoke-RestMethod -Uri "$apiBase/auth/forgot-password" -Method Post -ContentType "application/json" `
         -Body (@{ email = $adminEmail } | ConvertTo-Json) | Out-Null
@@ -468,10 +482,10 @@ function Invoke-PilotVerification([string]$EnvPath) {
         throw "Login with rotated admin password failed."
     }
 
-    Write-Host "Password reset email delivered and admin credentials rotated." -ForegroundColor Green
-    Write-Host "Store the rotated password securely. It is not written to disk by default."
+    Show-Message "Password reset email delivered and admin credentials rotated." -ForegroundColor Green
+    Show-Message "Store the rotated password securely. It is not written to disk by default."
 
-    Write-Step "Verifying MFA, dashboard CSV export, and contributor role flows"
+    Show-Step "Verifying MFA, dashboard CSV export, and contributor role flows"
     Ensure-TotpHelperBuilt
     Invoke-PilotDashboardExportVerification -ApiBase $apiBase -AdminEmail $adminEmail -AdminPassword $rotatedPassword
     Invoke-PilotMfaVerification -ApiBase $apiBase -AdminEmail $adminEmail -AdminPassword $rotatedPassword
@@ -499,10 +513,10 @@ function Invoke-PilotVerification([string]$EnvPath) {
         "- Point DNS to the public origin"
         "- Confirm GitHub Actions CI is green on the release branch"
     ) | Set-Content -Path $reportPath
-    Write-Host "Wrote $reportPath"
+    Show-Message "Wrote $reportPath"
 }
 
-Write-Step "Pilot release automation"
+Show-Step "Pilot release automation"
 $envPath = Ensure-PilotEnvFile
 
 if (-not $SkipCi) {
@@ -522,5 +536,5 @@ if (-not $SkipVerify) {
     Invoke-PilotVerification -EnvPath $envPath
 }
 
-Write-Host ""
-Write-Host "Pilot release workflow completed." -ForegroundColor Green
+Show-Message ""
+Show-Message "Pilot release workflow completed." -ForegroundColor Green
