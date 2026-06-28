@@ -109,6 +109,6 @@ test.describe('Tax Compliance smoke flow', () => {
     expect(completeResponse.ok()).toBeTruthy();
 
     await page.goto('/task-occurrences');
-    await expect(page.getByText(/task occurrences/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Task Occurrences' })).toBeVisible();
   });
 });
